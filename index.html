@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Phonē">
+<meta name="theme-color" content="#0F1B33">
+<title>Phonē · Gravador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js" defer></script>
+<style>
+:root{
+  --bg:#0F1B33; --bg2:#16264a; --card:#1a2c54; --line:#2a3f6e;
+  --tx:#EDE6D3; --tx2:#a9b3c9; --gold:#C9A227; --gold2:#e2c25a;
+  --red:#d94b4b; --ok:#3fae7a; --shadow:0 6px 24px rgba(0,0,0,.35);
+}
+body.claro{
+  --bg:#f6f1e4; --bg2:#ece4cf; --card:#fffdf7; --line:#ddd2b6;
+  --tx:#1b2440; --tx2:#5b6480; --gold:#a8831a; --gold2:#8a6a10;
+  --shadow:0 6px 20px rgba(60,45,10,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;touch-action:manipulation}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  min-height:100vh;padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px);transition:background .25s,color .25s}
+header{display:flex;align-items:center;gap:10px;padding:14px 18px;max-width:760px;margin:0 auto}
+.logo{font-family:Cinzel,serif;font-weight:700;font-size:26px;color:var(--gold);letter-spacing:2px}
+.sub{font-family:"Cormorant Garamond",serif;font-style:italic;color:var(--tx2);font-size:17px}
+.ver{font-size:11px;border:1px solid var(--line);color:var(--tx2);padding:2px 7px;border-radius:20px;margin-left:4px}
+.spacer{flex:1}
+.ico{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--gold);
+  font-size:19px;display:grid;place-items:center;cursor:pointer}
+main{max-width:760px;margin:0 auto;padding:0 14px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+h2{font-family:Cinzel,serif;font-size:16px;letter-spacing:1.5px;color:var(--gold);margin:0 0 14px;font-weight:500}
+label.l{display:block;font-size:13px;color:var(--tx2);margin:0 0 6px}
+select,input[type=text]{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--tx);font-size:16px}
+.chk{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:15px;cursor:pointer}
+.chk input{width:22px;height:22px;accent-color:var(--gold);flex:none}
+.chk small{display:block;color:var(--tx2);font-size:12px}
+canvas{width:100%;height:90px;display:block;background:var(--bg2);border-radius:12px;margin:14px 0 6px}
+.timer{font-family:Cinzel,serif;font-size:42px;text-align:center;letter-spacing:3px;margin:6px 0 12px}
+.rec-row{display:flex;justify-content:center;align-items:center;gap:22px}
+.bt-rec{width:84px;height:84px;border-radius:50%;border:4px solid var(--gold);background:transparent;display:grid;place-items:center;cursor:pointer}
+.bt-rec span{width:56px;height:56px;border-radius:50%;background:var(--red);transition:all .2s}
+.bt-rec.on span{width:34px;height:34px;border-radius:8px}
+.bt-rec.on{animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,75,75,.5)}50%{box-shadow:0 0 0 14px rgba(217,75,75,0)}}
+.bt-sec{width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:var(--bg2);color:var(--tx);font-size:20px;cursor:pointer}
+.bt-sec:disabled{opacity:.35}
+.status{text-align:center;color:var(--tx2);font-size:13px;margin-top:10px;min-height:18px}
+.btn{padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--tx);font-size:15px;cursor:pointer}
+.btn.pri{background:var(--gold);border-color:var(--gold);color:#0F1B33;font-weight:600}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1;min-width:130px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.presets button{padding:7px 12px;border-radius:20px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-size:13px;cursor:pointer}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+input[type=range]{width:100%;accent-color:var(--gold)}
+audio{width:100%;margin:8px 0}
+.prog{height:8px;background:var(--bg2);border-radius:8px;overflow:hidden;margin:12px 0 4px;display:none}
+.prog div{height:100%;width:0;background:var(--gold);transition:width .2s}
+.progtx{font-size:13px;color:var(--tx2);min-height:18px}
+.item{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:none}
+.item .nm{flex:1;min-width:0}
+.item .nm b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .nm small{color:var(--tx2);font-size:12px}
+.mini{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--tx);font-size:16px;cursor:pointer;flex:none}
+.tag{font-size:10px;background:var(--gold);color:#0F1B33;border-radius:6px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+.vazio{color:var(--tx2);font-style:italic;font-family:"Cormorant Garamond",serif;font-size:18px;text-align:center;padding:10px}
+.hide{display:none!important}
+#banner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 16px);background:var(--gold);color:#0F1B33;
+  padding:12px 14px 12px 18px;border-radius:14px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow);z-index:50;font-weight:600;max-width:92vw}
+#banner button{background:#0F1B33;color:var(--gold2);border:none;border-radius:10px;padding:9px 12px;font-weight:600;cursor:pointer}
+#toast{position:fixed;top:calc(env(safe-area-inset-top) + 14px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--gold);
+  color:var(--tx);padding:11px 16px;border-radius:12px;box-shadow:var(--shadow);z-index:60;font-size:14px;max-width:92vw;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast.on{opacity:1}
+#ajustes{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:40;padding:16px}
+#ajustes .card{max-width:420px;width:100%}
+.nota{font-size:13px;color:var(--tx2);line-height:1.45}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">PHONĒ</div>
+    <div class="sub">gravador de voz <span class="ver" id="verTopo"></span></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="ico" id="btTema" title="Modo claro/escuro">☀️</button>
+  <button class="ico" id="btAjustes" title="Ajustes">⚙️</button>
+</header>
+
+<main>
+  <!-- GRAVAR -->
+  <section class="card">
+    <h2>Gravar</h2>
+    <label class="l" for="fonte">Fonte do áudio</label>
+    <select id="fonte"><option value="padrao">Microfone padrão</option></select>
+    <label class="chk"><input type="checkbox" id="filtroVivo" checked>
+      <span>Reduzir ruído e eco já durante a gravação<small>Filtro do próprio aparelho. Desligue se for gravar música.</small></span></label>
+    <canvas id="onda" width="700" height="90"></canvas>
+    <div class="timer" id="timer">00:00</div>
+    <div class="rec-row">
+      <button class="bt-sec" id="btPausa" disabled title="Pausar">⏸</button>
+      <button class="bt-rec" id="btRec" title="Gravar / Parar"><span></span></button>
+      <button class="bt-sec" id="btDescartar" disabled title="Descartar">✕</button>
+    </div>
+    <div class="status" id="status">Toque no botão vermelho para gravar</div>
+  </section>
+
+  <!-- TRATAMENTO -->
+  <section class="card hide" id="editor">
+    <h2>Tratamento e MP3</h2>
+    <label class="l" for="edNome">Nome do arquivo</label>
+    <input type="text" id="edNome">
+    <label class="l" style="margin-top:12px">Original</label>
+    <audio id="edOrig" controls playsinline></audio>
+
+    <label class="l" style="margin-top:10px">Predefinições</label>
+    <div class="presets">
+      <button data-p="voz">Pregação / voz</button>
+      <button data-p="natural">Natural</button>
+      <button data-p="podcast">Podcast</button>
+      <button data-p="nada">Sem tratamento</button>
+    </div>
+
+    <label class="l">Redução de ruído: <b id="ruidoTx"></b></label>
+    <input type="range" id="ruido" min="0" max="100" step="5" value="60">
+
+    <div class="grid2">
+      <label class="chk"><input type="checkbox" id="oCortar"><span>Cortar silêncio<small>no início e no fim</small></span></label>
+      <label class="chk"><input type="checkbox" id="oGrave"><span>Remover zumbido grave<small>ventilador, ar, trânsito</small></span></label>
+      <label class="chk"><input type="checkbox" id="oRealce"><span>Realce da voz<small>mais clareza nas palavras</small></span></label>
+      <label class="chk"><input type="checkbox" id="oEncorpar"><span>Voz encorpada<small>mais graves, tom de rádio FM</small></span></label>
+      <label class="chk"><input type="checkbox" id="oComp"><span>Volume uniforme<small>compressor: falas baixas e altas parecidas</small></span></label>
+      <label class="chk"><input type="checkbox" id="oNorm"><span>Normalizar volume<small>deixa o volume final forte e sem estourar</small></span></label>
+      <label class="chk"><input type="checkbox" id="oFade"><span>Fade<small>entrada e saída suaves</small></span></label>
+      <label class="chk"><input type="checkbox" id="oReverb"><span>Ambiente leve<small>reverberação de sala</small></span></label>
+      <label class="chk"><input type="checkbox" id="oRadio"><span>Efeito telefone<small>voz de rádio antigo</small></span></label>
+    </div>
+
+    <label class="l" for="kbps" style="margin-top:8px">Qualidade do MP3</label>
+    <select id="kbps">
+      <option value="64">64 kbps — arquivo pequeno (WhatsApp)</option>
+      <option value="128" selected>128 kbps — padrão</option>
+      <option value="192">192 kbps — alta qualidade</option>
+    </select>
+
+    <div class="row" style="margin-top:14px"><button class="btn pri" id="btProcessar">Aplicar e gerar MP3</button></div>
+    <div class="prog" id="prog"><div></div></div>
+    <div class="progtx" id="progTx"></div>
+
+    <div id="resultado" class="hide">
+      <label class="l" style="margin-top:6px">Resultado</label>
+      <audio id="edRes" controls playsinline></audio>
+      <div class="row">
+        <button class="btn pri" id="btBaixar">⬇︎ Baixar MP3</button>
+        <button class="btn" id="btCompartilhar">Compartilhar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LISTA -->
+  <section class="card">
+    <h2>Minhas gravações</h2>
+    <div id="lista"><div class="vazio">Nenhuma gravação ainda.</div></div>
+  </section>
+</main>
+
+<!-- AJUSTES -->
+<div id="ajustes" class="hide">
+  <div class="card">
+    <h2>Ajustes</h2>
+    <p class="nota">Versão instalada: <b id="verAj"></b></p>
+    <div class="row">
+      <button class="btn" id="btVerificar">Verificar atualização</button>
+      <button class="btn pri" id="btAtualizar">Atualizar app</button>
+    </div>
+    <p class="nota" style="margin-top:14px">As gravações ficam guardadas só neste aparelho, dentro do navegador.
+      Baixe o MP3 das que quiser manter em definitivo.</p>
+    <p class="nota">No iPhone/iPad o sistema não permite gravar o som interno de outros apps — só o microfone.
+      No computador (Chrome/Edge) aparece a opção “Áudio do computador”.</p>
+    <div class="row" style="margin-top:10px"><button class="btn" id="btFechar">Fechar</button></div>
+  </div>
+</div>
+
+<div id="banner" class="hide"><span>Nova versão disponível</span><button id="btBanner">Atualizar agora</button></div>
+<div id="toast"></div>
+
+<script>
+const APP_VERSION = '1.0.0';
+const $ = s => document.querySelector(s);
+const tick = () => new Promise(r => setTimeout(r, 0));
+
+/* ---------- utilidades ---------- */
+function toast(msg, ms = 3200){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),ms); }
+function fmt(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); }
+function nomePadrao(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return `Gravação ${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}h${p(d.getMinutes())}`; }
+function nomeArquivo(n){ return (n||'gravacao').replace(/[\\/:*?"<>|]+/g,'-').trim(); }
+
+/* ---------- versão, tema, zoom ---------- */
+$('#verTopo').textContent='v'+APP_VERSION; $('#verAj').textContent=APP_VERSION;
+function aplicarTema(claro){ document.body.classList.toggle('claro',claro); $('#btTema').textContent=claro?'🌙':'☀️';
+  document.querySelector('meta[name=theme-color]').content = claro?'#f6f1e4':'#0F1B33'; }
+let temaClaro=false; try{ temaClaro=localStorage.getItem('phone-tema')==='claro'; }catch(e){}
+aplicarTema(temaClaro);
+$('#btTema').onclick=()=>{ temaClaro=!temaClaro; aplicarTema(temaClaro); try{localStorage.setItem('phone-tema',temaClaro?'claro':'escuro');}catch(e){} };
+// impedir zoom por duplo toque / pinça (iPad)
+let ultimoToque=0;
+document.addEventListener('touchend',e=>{ const a=Date.now(); if(a-ultimoToque<350) e.preventDefault(); ultimoToque=a; },{passive:false});
+['gesturestart','gesturechange','dblclick'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+
+/* ---------- atualização ---------- */
+async function verificarVersao(manual){
+  try{
+    const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'});
+    const txt=await r.text(); const m=txt.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+    if(m && m[1]!==APP_VERSION){ $('#banner').classList.remove('hide'); if(manual) toast('Versão '+m[1]+' disponível.'); }
+    else if(manual) toast('Você já está na versão mais recente ('+APP_VERSION+').');
+  }catch(e){ if(manual) toast('Não consegui verificar agora (sem internet?).'); }
+}
+async function atualizarApp(){
+  try{ if('caches' in window){ for(const k of await caches.keys()) await caches.delete(k); } }catch(e){}
+  try{ if(navigator.serviceWorker){ for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } }catch(e){}
+  location.replace(location.pathname+'?r='+Date.now());
+}
+$('#btBanner').onclick=atualizarApp; $('#btAtualizar').onclick=atualizarApp;
+$('#btVerificar').onclick=()=>verificarVersao(true);
+$('#btAjustes').onclick=()=>$('#ajustes').classList.remove('hide');
+$('#btFechar').onclick=()=>$('#ajustes').classList.add('hide');
+$('#ajustes').onclick=e=>{ if(e.target.id==='ajustes') $('#ajustes').classList.add('hide'); };
+setTimeout(()=>verificarVersao(false),2500);
+setInterval(()=>verificarVersao(false),30*60*1000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden && !gravando) verificarVersao(false); });
+
+/* ---------- banco local (IndexedDB) ---------- */
+const DB={ db:null,
+  async abrir(){ if(this.db) return this.db;
+    this.db=await new Promise((res,rej)=>{ const r=indexedDB.open('phone-gravador',1);
+      r.onupgradeneeded=()=>r.result.createObjectStore('gravacoes',{keyPath:'id'});
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+    return this.db; },
+  async tx(modo,fn){ const db=await this.abrir(); return new Promise((res,rej)=>{ const t=db.transaction('gravacoes',modo);
+      const req=fn(t.objectStore('gravacoes')); t.oncomplete=()=>res(req&&req.result); t.onerror=()=>rej(t.error); }); },
+  todos(){ return this.tx('readonly',s=>s.getAll()); },
+  pegar(id){ return this.tx('readonly',s=>s.get(id)); },
+  salvar(o){ return this.tx('readwrite',s=>s.put(o)); },
+  apagar(id){ return this.tx('readwrite',s=>s.delete(id)); }
+};
+try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+
+/* ---------- dispositivos ---------- */
+const temSistema = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) && !/iPad|iPhone|iPod|Android/i.test(navigator.userAgent) && !(navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+async function carregarDispositivos(){
+  const sel=$('#fonte'), atual=sel.value;
+  let devs=[]; try{ devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput'); }catch(e){}
+  sel.innerHTML='<option value="padrao">Microfone padrão</option>';
+  devs.forEach((d,i)=>{ if(d.deviceId==='default'||!d.deviceId) return; const o=document.createElement('option'); o.value=d.deviceId; o.textContent=d.label||('Microfone '+(i+1)); sel.appendChild(o); });
+  if(temSistema){ const o=document.createElement('option'); o.value='sistema'; o.textContent='Áudio do computador / de uma aba'; sel.appendChild(o); }
+  if([...sel.options].some(o=>o.value===atual)) sel.value=atual;
+}
+carregarDispositivos();
+
+/* ---------- gravação ---------- */
+let gravando=false, pausado=false, stream=null, extraStream=null, rec=null, pedacos=[], decorrido=0, marco=0, timerId=null, actx=null, analyser=null, rafId=null, wakeLock=null, descartar=false;
+function escolherMime(){ const c=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/aac','audio/ogg;codecs=opus'];
+  for(const m of c){ try{ if(MediaRecorder.isTypeSupported(m)) return m; }catch(e){} } return ''; }
+
+async function iniciar(){
+  if(!navigator.mediaDevices||!window.MediaRecorder){ toast('Este navegador não permite gravar áudio. Use Safari, Chrome ou Edge atualizados.'); return; }
+  const fonte=$('#fonte').value;
+  try{
+    if(fonte==='sistema'){
+      extraStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+      const at=extraStream.getAudioTracks();
+      if(!at.length){ extraStream.getTracks().forEach(t=>t.stop()); extraStream=null; toast('Nenhum áudio foi compartilhado. Marque “Compartilhar áudio” na janela.',5000); return; }
+      stream=new MediaStream(at);
+    }else{
+      const f=$('#filtroVivo').checked;
+      const c={echoCancellation:f,noiseSuppression:f,autoGainControl:f,channelCount:1};
+      if(fonte!=='padrao') c.deviceId={exact:fonte};
+      stream=await navigator.mediaDevices.getUserMedia({audio:c});
+    }
+  }catch(e){ toast('Sem acesso ao microfone: permita o uso nas configurações do navegador.',5000); return; }
+  carregarDispositivos();
+  const mime=escolherMime();
+  try{ rec=new MediaRecorder(stream, mime?{mimeType:mime,audioBitsPerSecond:128000}:undefined); }
+  catch(e){ rec=new MediaRecorder(stream); }
+  pedacos=[]; descartar=false;
+  rec.ondataavailable=e=>{ if(e.data&&e.data.size) pedacos.push(e.data); };
+  rec.onstop=finalizar;
+  rec.start(1000);
+  gravando=true; pausado=false; decorrido=0; marco=performance.now();
+  timerId=setInterval(atualizarTimer,250);
+  iniciarVisual();
+  try{ wakeLock=await navigator.wakeLock.request('screen'); }catch(e){}
+  $('#btRec').classList.add('on'); $('#btPausa').disabled=false; $('#btDescartar').disabled=false; $('#btPausa').textContent='⏸';
+  $('#status').textContent='Gravando… toque de novo para parar';
+}
+function atualizarTimer(){ const t=decorrido+(pausado?0:(performance.now()-marco)/1000); $('#timer').textContent=fmt(t); return t; }
+function pausar(){
+  if(!rec) return;
+  if(!pausado){ rec.pause(); decorrido+=(performance.now()-marco)/1000; pausado=true; $('#btPausa').textContent='▶︎'; $('#status').textContent='Pausado'; }
+  else{ rec.resume(); marco=performance.now(); pausado=false; $('#btPausa').textContent='⏸'; $('#status').textContent='Gravando… toque de novo para parar'; }
+}
+function parar(sem){ if(!rec) return; descartar=!!sem; if(!pausado) decorrido+=(performance.now()-marco)/1000; pausado=true; try{ rec.stop(); }catch(e){ finalizar(); } }
+async function finalizar(){
+  clearInterval(timerId); cancelAnimationFrame(rafId);
+  try{ stream&&stream.getTracks().forEach(t=>t.stop()); extraStream&&extraStream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  try{ actx&&actx.close(); }catch(e){}
+  try{ wakeLock&&wakeLock.release(); }catch(e){}
+  gravando=false; stream=extraStream=null; actx=null; wakeLock=null;
+  $('#btRec').classList.remove('on'); $('#btPausa').disabled=true; $('#btDescartar').disabled=true; $('#btPausa').textContent='⏸';
+  limparVisual();
+  const tipo=(rec&&rec.mimeType)||escolherMime()||'audio/webm'; rec=null;
+  if(descartar||!pedacos.length){ $('#timer').textContent='00:00'; $('#status').textContent=descartar?'Gravação descartada':'Nada foi gravado'; return; }
+  const blob=new Blob(pedacos,{type:tipo}); pedacos=[];
+  const item={id:Date.now(), nome:nomePadrao(), data:Date.now(), dur:decorrido, mime:tipo, buf:await blob.arrayBuffer(), mp3:null};
+  try{ await DB.salvar(item); }catch(e){ toast('Não consegui guardar no aparelho, mas você pode tratar e baixar agora.'); }
+  $('#status').textContent='Gravação salva ('+fmt(decorrido)+'). Ajuste o tratamento abaixo.';
+  await renderLista(); abrirEditor(item);
+}
+$('#btRec').onclick=()=>{ gravando?parar(false):iniciar(); };
+$('#btPausa').onclick=pausar;
+$('#btDescartar').onclick=()=>{ if(confirm('Descartar esta gravação?')) parar(true); };
+
+/* visualização da onda */
+function iniciarVisual(){
+  try{ actx=new (window.AudioContext||window.webkitAudioContext)(); const src=actx.createMediaStreamSource(stream);
+    analyser=actx.createAnalyser(); analyser.fftSize=1024; src.connect(analyser); actx.resume&&actx.resume(); }catch(e){ return; }
+  const cv=$('#onda'), g=cv.getContext('2d'), d=new Uint8Array(analyser.fftSize);
+  const desenhar=()=>{ rafId=requestAnimationFrame(desenhar); analyser.getByteTimeDomainData(d);
+    const W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
+    g.strokeStyle=getComputedStyle(document.body).getPropertyValue('--gold'); g.lineWidth=2; g.beginPath();
+    for(let i=0;i<d.length;i++){ const x=i/d.length*W, y=(d[i]/255)*H; i?g.lineTo(x,y):g.moveTo(x,y); } g.stroke(); };
+  desenhar();
+}
+function limparVisual(){ const cv=$('#onda'); cv.getContext('2d').clearRect(0,0,cv.width,cv.height); }
+
+/* ---------- lista ---------- */
+let atual=null, resultadoBlob=null;
+async function renderLista(){
+  let itens=[]; try{ itens=await DB.todos(); }catch(e){}
+  itens.sort((a,b)=>b.data-a.data);
+  const L=$('#lista');
+  if(!itens.length){ L.innerHTML='<div class="vazio">Nenhuma gravação ainda.</div>'; return; }
+  L.innerHTML='';
+  itens.forEach(it=>{
+    const d=new Date(it.data);
+    const div=document.createElement('div'); div.className='item';
+    div.innerHTML=`<div class="nm"><b></b><small>${d.toLocaleDateString('pt-BR')} · ${fmt(it.dur)}${it.mp3?' <span class="tag">MP3</span>':''}</small></div>
+      <button class="mini" data-a="abrir" title="Tratar / MP3">🎚️</button>
+      ${it.mp3?'<button class="mini" data-a="mp3" title="Baixar MP3">⬇︎</button>':''}
+      <button class="mini" data-a="ren" title="Renomear">✎</button>
+      <button class="mini" data-a="del" title="Apagar">🗑</button>`;
+    div.querySelector('b').textContent=it.nome;
+    div.onclick=async e=>{ const a=e.target.dataset.a; if(!a) return;
+      const x=await DB.pegar(it.id); if(!x) return;
+      if(a==='abrir'){ abrirEditor(x); $('#editor').scrollIntoView({behavior:'smooth'}); }
+      if(a==='mp3'){ baixar(new Blob([x.mp3],{type:'audio/mpeg'}), x.nome); }
+      if(a==='ren'){ const n=prompt('Novo nome:',x.nome); if(n&&n.trim()){ x.nome=n.trim(); await DB.salvar(x); if(atual&&atual.id===x.id){ atual.nome=x.nome; $('#edNome').value=x.nome; } renderLista(); } }
+      if(a==='del'){ if(confirm('Apagar “'+x.nome+'”? Não dá para desfazer.')){ await DB.apagar(x.id); if(atual&&atual.id===x.id){ $('#editor').classList.add('hide'); atual=null; } renderLista(); } }
+    };
+    L.appendChild(div);
+  });
+}
+
+/* ---------- editor ---------- */
+const PRESETS={
+  voz:{ruido:60,oCortar:1,oGrave:1,oRealce:1,oEncorpar:0,oComp:1,oNorm:1,oFade:1,oReverb:0,oRadio:0},
+  natural:{ruido:35,oCortar:1,oGrave:1,oRealce:0,oEncorpar:0,oComp:0,oNorm:1,oFade:1,oReverb:0,oRadio:0},
+  podcast:{ruido:70,oCortar:1,oGrave:1,oRealce:1,oEncorpar:1,oComp:1,oNorm:1,oFade:1,oReverb:0,oRadio:0},
+  nada:{ruido:0,oCortar:0,oGrave:0,oRealce:0,oEncorpar:0,oComp:0,oNorm:0,oFade:0,oReverb:0,oRadio:0}
+};
+function aplicarPreset(p){ const c=PRESETS[p]; $('#ruido').value=c.ruido; atualizarRuidoTx();
+  for(const k in c) if(k!=='ruido') $('#'+k).checked=!!c[k];
+  try{ localStorage.setItem('phone-preset',p); }catch(e){} }
+document.querySelectorAll('.presets button').forEach(b=>b.onclick=()=>aplicarPreset(b.dataset.p));
+function atualizarRuidoTx(){ const v=+$('#ruido').value; $('#ruidoTx').textContent=v===0?'desligada':(v+'%'+(v>=80?' (forte)':'')); }
+$('#ruido').oninput=atualizarRuidoTx;
+let presetSalvo='voz'; try{ presetSalvo=localStorage.getItem('phone-preset')||'voz'; }catch(e){}
+aplicarPreset(PRESETS[presetSalvo]?presetSalvo:'voz');
+
+function abrirEditor(item){
+  atual=item; $('#editor').classList.remove('hide');
+  $('#edNome').value=item.nome;
+  const o=$('#edOrig'); if(o._url) URL.revokeObjectURL(o._url);
+  o._url=URL.createObjectURL(new Blob([item.buf],{type:item.mime})); o.src=o._url;
+  $('#prog').style.display='none'; $('#progTx').textContent='';
+  if(item.mp3){ mostrarResultado(new Blob([item.mp3],{type:'audio/mpeg'})); } else { $('#resultado').classList.add('hide'); resultadoBlob=null; }
+}
+$('#edNome').onchange=async()=>{ if(!atual) return; const n=$('#edNome').value.trim(); if(!n) return; atual.nome=n; try{ const x=await DB.pegar(atual.id); if(x){ x.nome=n; await DB.salvar(x);} }catch(e){} renderLista(); };
+
+function mostrarResultado(blob){
+  resultadoBlob=blob; const a=$('#edRes'); if(a._url) URL.revokeObjectURL(a._url);
+  a._url=URL.createObjectURL(blob); a.src=a._url; $('#resultado').classList.remove('hide');
+}
+function prog(p,txt){ $('#prog').style.display='block'; $('#prog div').style.width=Math.min(100,p)+'%'; if(txt) $('#progTx').textContent=txt; }
+
+$('#btProcessar').onclick=async()=>{
+  if(!atual) return;
+  if(!window.lamejs){ toast('O conversor de MP3 ainda não carregou. Verifique a internet e tente de novo.',5000); return; }
+  const op={ ruido:+$('#ruido').value, cortar:$('#oCortar').checked, grave:$('#oGrave').checked, realce:$('#oRealce').checked,
+    encorpar:$('#oEncorpar').checked, comp:$('#oComp').checked, norm:$('#oNorm').checked, fade:$('#oFade').checked,
+    reverb:$('#oReverb').checked, radio:$('#oRadio').checked, kbps:+$('#kbps').value };
+  const b=$('#btProcessar'); b.disabled=true;
+  try{
+    const mp3=await processar(new Blob([atual.buf],{type:atual.mime}),op,prog);
+    mostrarResultado(mp3);
+    const x=await DB.pegar(atual.id); if(x){ x.mp3=await mp3.arrayBuffer(); await DB.salvar(x); atual.mp3=x.mp3; }
+    renderLista();
+    $('#progTx').textContent='Pronto! Ouça o resultado e baixe o MP3 ('+(mp3.size/1048576).toFixed(1)+' MB).';
+  }catch(e){ console.error(e); $('#progTx').textContent='Erro ao processar: '+(e.message||e); }
+  b.disabled=false;
+};
+
+function baixar(blob,nome){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nomeArquivo(nome)+'.mp3';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000); }
+$('#btBaixar').onclick=()=>{ if(resultadoBlob) baixar(resultadoBlob,$('#edNome').value); };
+$('#btCompartilhar').onclick=async()=>{
+  if(!resultadoBlob) return;
+  const f=new File([resultadoBlob],nomeArquivo($('#edNome').value)+'.mp3',{type:'audio/mpeg'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:f.name}); }catch(e){} }
+  else{ toast('Compartilhar não é suportado aqui; use “Baixar MP3”.'); }
+};
+
+/* ---------- processamento de áudio ---------- */
+async function processar(blob,o,prog){
+  prog(2,'Lendo o áudio…');
+  const ab=await blob.arrayBuffer();
+  const C=window.AudioContext||window.webkitAudioContext; const ctx=new C();
+  const buf=await new Promise((res,rej)=>ctx.decodeAudioData(ab,res,rej));
+  try{ ctx.close(); }catch(e){}
+  const sr=buf.sampleRate;
+  let x=paraMono(buf);
+  if(o.cortar){ x=cortarSilencio(x,sr); }
+  if(o.ruido>0){ x=await reduzirRuido(x,o.ruido/100,p=>prog(5+p*55,'Removendo ruído… '+Math.round(p*100)+'%')); }
+  prog(62,'Aplicando efeitos…'); await tick();
+  const OUT=44100, cauda=o.reverb?Math.round(OUT*1.8):0;
+  const off=new OfflineAudioContext(1,Math.ceil(x.length*OUT/sr)+cauda,OUT);
+  const b=off.createBuffer(1,x.length,sr); b.getChannelData(0).set(x);
+  const src=off.createBufferSource(); src.buffer=b;
+  let no=src; const liga=n=>{ no.connect(n); no=n; };
+  const filtro=(tipo,f,q,g)=>{ const n=off.createBiquadFilter(); n.type=tipo; n.frequency.value=f; if(q!=null) n.Q.value=q; if(g!=null) n.gain.value=g; return n; };
+  if(o.grave) liga(filtro('highpass',85,0.7));
+  if(o.radio){ liga(filtro('highpass',350,0.9)); liga(filtro('lowpass',3200,0.9)); liga(filtro('peaking',1500,1,5)); }
+  if(o.encorpar){ liga(filtro('lowshelf',170,null,4)); liga(filtro('peaking',350,1.2,-2)); }
+  if(o.realce){ liga(filtro('peaking',3000,0.9,4)); liga(filtro('peaking',220,1,-1.5)); }
+  if(o.comp){ const c=off.createDynamicsCompressor(); c.threshold.value=-26; c.knee.value=10; c.ratio.value=4; c.attack.value=0.006; c.release.value=0.22; liga(c); }
+  if(o.reverb){ const dry=off.createGain(), wet=off.createGain(), conv=off.createConvolver(), mix=off.createGain();
+    conv.buffer=impulso(off,1.5,3.2); wet.gain.value=0.2; no.connect(dry); no.connect(conv); conv.connect(wet); dry.connect(mix); wet.connect(mix); no=mix; }
+  no.connect(off.destination); src.start(0);
+  const r=await new Promise((res,rej)=>{ off.oncomplete=e=>res(e.renderedBuffer); const p=off.startRendering(); if(p&&p.catch) p.catch(rej); });
+  let y=r.getChannelData(0);
+  if(cauda) y=cortarFimSilencioso(y);
+  if(o.norm) normalizar(y,OUT);
+  if(o.fade) fade(y,OUT,0.15,0.6);
+  prog(70,'Gerando MP3…'); await tick();
+  const mp3=await codificarMP3(y,OUT,o.kbps,p=>prog(70+p*29,'Gerando MP3… '+Math.round(p*100)+'%'));
+  prog(100,'Pronto'); return mp3;
+}
+function paraMono(buf){ const n=buf.length, ch=buf.numberOfChannels; if(ch===1) return new Float32Array(buf.getChannelData(0));
+  const out=new Float32Array(n); for(let c=0;c<ch;c++){ const d=buf.getChannelData(c); for(let i=0;i<n;i++) out[i]+=d[i]/ch; } return out; }
+function blocosRMS(x,sr,ms){ const B=Math.max(1,Math.round(sr*ms/1000)), n=Math.ceil(x.length/B), r=new Float32Array(n);
+  for(let b=0;b<n;b++){ let s=0; const i0=b*B, i1=Math.min(x.length,i0+B); for(let i=i0;i<i1;i++) s+=x[i]*x[i]; r[b]=Math.sqrt(s/Math.max(1,i1-i0)); } return {r,B}; }
+function cortarSilencio(x,sr){
+  const {r,B}=blocosRMS(x,sr,20); let pico=0; for(const v of r) if(v>pico) pico=v; if(!pico) return x;
+  const lim=Math.max(pico*0.03,0.003); let a=0,b=r.length-1;
+  while(a<r.length&&r[a]<lim) a++; while(b>a&&r[b]<lim) b--;
+  const m=Math.round(sr*0.25); const i0=Math.max(0,a*B-m), i1=Math.min(x.length,(b+1)*B+m);
+  return (i1-i0>sr*0.5)? x.slice(i0,i1) : x;
+}
+function cortarFimSilencioso(y){ let i=y.length-1; while(i>0&&Math.abs(y[i])<0.0008) i--; return y.subarray(0,Math.min(y.length,i+2205)); }
+function normalizar(y,sr){
+  let pico=0; for(let i=0;i<y.length;i++){ const a=Math.abs(y[i]); if(a>pico) pico=a; } if(!pico) return;
+  const {r}=blocosRMS(y,sr,50); let s=0,n=0; for(const v of r) if(v>0.003){ s+=v*v; n++; }
+  const rms=n?Math.sqrt(s/n):pico/4;
+  const ganho=Math.min(0.89/pico, 0.125/rms); // pico máx −1 dBFS; nível médio ~−18 dBFS
+  for(let i=0;i<y.length;i++) y[i]*=ganho;
+}
+function fade(y,sr,ini,fim){ const a=Math.min(y.length,Math.round(sr*ini)), b=Math.min(y.length,Math.round(sr*fim));
+  for(let i=0;i<a;i++) y[i]*=i/a; for(let i=0;i<b;i++) y[y.length-1-i]*=i/b; }
+function impulso(ctx,seg,decai){ const n=Math.round(ctx.sampleRate*seg), b=ctx.createBuffer(1,n,ctx.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,decai); return b; }
+
+/* redução de ruído espectral: mede o "perfil" do ruído nos trechos mais silenciosos e o subtrai do áudio todo */
+function criarFFT(N){
+  const lev=Math.log2(N), rev=new Uint32Array(N);
+  for(let i=0;i<N;i++){ let r=0; for(let b=0;b<lev;b++) r=(r<<1)|((i>>b)&1); rev[i]=r; }
+  const co=new Float64Array(N/2), si=new Float64Array(N/2);
+  for(let i=0;i<N/2;i++){ co[i]=Math.cos(2*Math.PI*i/N); si[i]=Math.sin(2*Math.PI*i/N); }
+  return (re,im,inv)=>{
+    for(let i=0;i<N;i++){ const j=rev[i]; if(j>i){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t; } }
+    for(let size=2;size<=N;size<<=1){ const h=size>>1, st=N/size;
+      for(let i=0;i<N;i+=size) for(let j=0,k=0;j<h;j++,k+=st){
+        const c=co[k], s=inv?si[k]:-si[k], a=i+j, b=a+h;
+        const tr=re[b]*c-im[b]*s, ti=re[b]*s+im[b]*c;
+        re[b]=re[a]-tr; im[b]=im[a]-ti; re[a]+=tr; im[a]+=ti; } }
+    if(inv) for(let i=0;i<N;i++){ re[i]/=N; im[i]/=N; }
+  };
+}
+async function reduzirRuido(x,forca,cb){
+  const N=2048, H=512, K=N/2+1, fft=criarFFT(N);
+  const w=new Float32Array(N); for(let i=0;i<N;i++) w[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);
+  const pad=new Float32Array(x.length+2*N); pad.set(x,N);
+  const nQ=Math.floor((pad.length-N)/H)+1;
+  // 1) energia de cada quadro (para achar os trechos de silêncio/ruído)
+  const pre=new Float64Array(pad.length+1); for(let i=0;i<pad.length;i++) pre[i+1]=pre[i]+pad[i]*pad[i];
+  const cand=[]; for(let f=0;f<nQ;f++){ const s=f*H; if(s>=N&&s+N<=N+x.length) cand.push([pre[s+N]-pre[s],f]); }
+  if(cand.length<4) return x;
+  cand.sort((a,b)=>a[0]-b[0]);
+  const qt=Math.min(400,Math.max(4,Math.floor(cand.length*0.1)));
+  // 2) perfil médio do ruído
+  const re=new Float64Array(N), im=new Float64Array(N), ruido=new Float64Array(K);
+  for(let q=0;q<qt;q++){ const s=cand[q][1]*H; for(let i=0;i<N;i++){ re[i]=pad[s+i]*w[i]; im[i]=0; } fft(re,im,false);
+    for(let k=0;k<K;k++) ruido[k]+=Math.hypot(re[k],im[k]); }
+  for(let k=0;k<K;k++) ruido[k]/=qt;
+  // 3) aplicar ganho por frequência em todos os quadros
+  const sobre=1.5+2*forca, piso=Math.max(0.06,1-0.94*forca);
+  const g=new Float64Array(K), gs=new Float64Array(K), ant=new Float64Array(K).fill(1);
+  const out=new Float32Array(pad.length);
+  for(let f=0;f<nQ;f++){
+    const s=f*H; for(let i=0;i<N;i++){ re[i]=pad[s+i]*w[i]; im[i]=0; } fft(re,im,false);
+    for(let k=0;k<K;k++){ const m=Math.hypot(re[k],im[k])+1e-12; let v=1-sobre*ruido[k]/m; g[k]=v<piso?piso:(v>1?1:v); }
+    for(let k=0;k<K;k++){ let s2=0,c=0; for(let j=k-2;j<=k+2;j++) if(j>=0&&j<K){ s2+=g[j]; c++; } let v=s2/c; const seg=ant[k]*0.65; if(v<seg) v=seg; gs[k]=v; ant[k]=v; }
+    for(let k=0;k<K;k++){ re[k]*=gs[k]; im[k]*=gs[k]; if(k>0&&k<N/2){ re[N-k]*=gs[k]; im[N-k]*=gs[k]; } }
+    fft(re,im,true);
+    for(let i=0;i<N;i++) out[s+i]+=re[i]*w[i]/1.5;
+    if(f%300===0){ cb(f/nQ); await tick(); }
+  }
+  cb(1); return out.slice(N,N+x.length);
+}
+
+/* ---------- MP3 ---------- */
+async function codificarMP3(y,sr,kbps,cb){
+  const enc=new lamejs.Mp3Encoder(1,sr,kbps), B=1152*20, partes=[];
+  for(let i=0,n=0;i<y.length;i+=B,n++){
+    const len=Math.min(B,y.length-i), s=new Int16Array(len);
+    for(let j=0;j<len;j++){ let v=y[i+j]; v=v>1?1:(v<-1?-1:v); s[j]=v<0?v*32768:v*32767; }
+    const o=enc.encodeBuffer(s); if(o.length) partes.push(new Uint8Array(o));
+    if(n%25===0){ cb(i/y.length); await tick(); }
+  }
+  const fim=enc.flush(); if(fim.length) partes.push(new Uint8Array(fim));
+  cb(1); return new Blob(partes,{type:'audio/mpeg'});
+}
+
+renderLista();
+</script>
+</body>
+</html>
